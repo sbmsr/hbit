@@ -20,29 +20,32 @@ bpm2ms bpm = ceiling $ 1000*60 / fromIntegral bpm
 
 -- NOTE: Samples taken from "conductive-examples"
 
-instruments = words "kick1 snare1 hihat1"
+drums = words "kick1 snare1 hihat1"
 
 loadInstrumentSample name = return $ "static/" ++ name ++ ".wav"
 
 {-----------------------------------------------------------------------------
     Main
 ------------------------------------------------------------------------------}
+-- start the server with specified config
 main :: IO ()
 main = do
-    static <- getStaticDir
-    startGUI defaultConfig { tpStatic = Just static } setup
+    -- static <- getStaticDir
+    startGUI defaultConfig { tpStatic = Just "static/"} setup
 
+
+-- everytime the server is reached, this function is called
 setup :: Window -> UI ()
 setup w = void $ do
-    return w # set title "Ha-ha-ha-ks-ks-ks-ha-ha-ha-ell-ell-ell"
-
-    elBpm  <- UI.input # set value (show defaultBpm)
-    elTick <- UI.span
-    (kit, elInstruments) <- mkDrumKit
-    let status = grid [[UI.string "BPM:" , element elBpm]
-                      ,[UI.string "Beat:", element elTick]]
-    getBody w #+ [UI.div #. "wrap" #+ (status : map element elInstruments)]
+    return w # set title "hBit"
     
+    elBpm  <- UI.input # set value (show defaultBpm) -- set bpm in input elem
+    elTick <- UI.span                                -- show tick in span elem
+    let status = grid [[UI.string "BPM:" , element elBpm] 
+                      ,[UI.string "Beat:", element elTick]]
+    (kit, elInstruments) <- mkDrumKit
+    getBody w #+ [UI.div #. "wrap" #+ (status : map element elInstruments)]
+    -- add list of elements to body
     timer <- UI.timer # set UI.interval (bpm2ms defaultBpm)
     eBeat <- accumE (0::Int) $
         (\beat -> (beat + 1) `mod` (beats * bars)) <$ UI.tick timer
@@ -66,7 +69,7 @@ type Instrument = [Beat]
 type Beat       = UI ()         -- play the corresponding sound
 
 mkDrumKit :: UI (Kit, [Element])
-mkDrumKit = unzip <$> mapM mkInstrument instruments
+mkDrumKit = unzip <$> mapM mkInstrument drums
 
 mkInstrument :: String -> UI (Instrument, Element)
 mkInstrument name = do
@@ -91,3 +94,6 @@ mkInstrument name = do
         #+ (element elAudio : UI.string name : elGroups)
     
     return (beats, elInstrument)
+
+
+
