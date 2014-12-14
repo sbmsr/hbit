@@ -63,25 +63,42 @@ setup w = void $ do
         return timer # set UI.interval (bpm2ms bpm)
 
     on UI.keydown   wrap $ \c ->
-      --element out # set text ("Keycode: " ++ show c)
-      return $ somefunc c
+      do
+        element out # set text ("Keycode: " ++ show c)
+        -- return $ somefunc c
+        elPianoKey1 <- a1 -- UI.audio # set UI.src "static/tom1.wav"
+        do
+          runFunction $ ffi "%1.pause()" elPianoKey1
+          runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
+          runFunction $ ffi "%1.play()" elPianoKey1
+      
       
     -- star the timer
     UI.start timer
 {- -}
+
+a1 = do
+  a1' <- loadInstrumentSample "kick1"
+  UI.audio # set (attr "preload") "1" # set UI.src a1'
+
 somefunc :: UI.KeyCode -> UI ()
 somefunc c = do
-  elPianoKey1 <- UI.audio # set UI.src "static/tom1.wav"
+  elPianoKey1 <- a1 -- UI.audio # set UI.src "static/tom1.wav"
+  do
+    runFunction $ ffi "%1.pause()" elPianoKey1
+    runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
+    runFunction $ ffi "%1.play()" elPianoKey1
+    {-  
   case c of
-    50        -> do
+    {- 50        -> do
       runFunction $ ffi "%1.pause()" elPianoKey1
       runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
-      runFunction $ ffi "%1.play()" elPianoKey1
+      runFunction $ ffi "%1.play()" elPianoKey1 -}
     otherwise -> do
       runFunction $ ffi "%1.pause()" elPianoKey1
       runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
       runFunction $ ffi "%1.play()" elPianoKey1
-      
+      -}
 type Kit        = [Instrument]
 type Instrument = [Beat]
 type Beat       = UI ()         -- play the corresponding sound
