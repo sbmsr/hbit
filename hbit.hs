@@ -56,7 +56,6 @@ setup w = void $ do
     let status = grid [[UI.string "BPM:" , element elBpm] 
                       ,[UI.string "Beat:", element elTick]]
     (kit, elInstruments) <- mkDrumKit
-    keyboard <- mkKeyboard
     out <- UI.span # set text "Note : "
     wrap <- UI.div #. "wrap"
          # set (attr "tabindex") "1"
@@ -83,16 +82,14 @@ setup w = void $ do
          let i = lookup input input2note in
           if (isJust i) then
             do
-    --          lookup (fromJust i) keyboard
+              fromJust $ lookup (fromJust i) keyboard
               element out # set text ("Note : " ++ fromJust i)
+              
               --return lookup (fromJust i) keyboard
           else  element out 
           
     -- star the timer
     UI.start timer
-    
-myFunc :: String-> Maybe String
-myFunc x = Just x
 
 type Kit        = [Instrument]
 type Instrument = [Beat]
@@ -128,10 +125,9 @@ mkCheckboxInstrument name = do
 
 
 
-mkKeyboard :: UI [(String,Element)]
-mkKeyboard = do
-               noteSounds <- mapM mkInvisibleInstrument notes
-               return $ zip notes noteSounds
+keyboard :: [(String, UI (Element))]
+keyboard = let noteSounds = map mkInvisibleInstrument notes in
+               zip notes noteSounds
 
 mkInvisibleInstrument :: String -> UI (Element)
 mkInvisibleInstrument name = do
