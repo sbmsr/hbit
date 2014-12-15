@@ -17,7 +17,7 @@ bpm2ms :: Int -> Int
 bpm2ms bpm = ceiling $ 1000*60 / fromIntegral bpm
 
 drums = words "kick1 snare1 hihat1"
-notes = words "C C# D D# E F F# G G# A A# B"
+notes = words "C C# snare1 D# E F F# G G# A A# B"
 
 -- map of key press to note name
 input2note = zip keyPresses notes
@@ -79,17 +79,38 @@ setup w = void $ do
 
     -- allow user to play piano
     on UI.keydown   wrap $ \input ->
-         let i = lookup input input2note in
-          if (isJust i) then
+         let note = lookup input input2note in
+          if (isJust note) then
             do
-              fromJust $ lookup (fromJust i) keyboard
-              element out # set text ("Note : " ++ fromJust i)
-              
-              --return lookup (fromJust i) keyboard
+              playNote $ fromJust note
+              element out # set text ("Note : " ++ fromJust note)
           else  element out 
-          
-    -- star the timer
+
     UI.start timer
+
+
+playNote :: String -> UI ()
+playNote noteString = do
+                 elPianoNote <- fromJust $ lookup noteString keyboard 
+                 do
+                   runFunction $ ffi "%1.pause()" elPianoNote
+                   runFunction $ ffi "%1.currentTime = 0" elPianoNote 
+                   runFunction $ ffi "%1.play()" elPianoNote
+
+      
+keyboard :: [(String, UI (Element))]
+keyboard = let noteSounds = map mkInvisibleInstrument notes in
+               zip notes noteSounds
+
+mkInvisibleInstrument :: String -> UI (Element)
+mkInvisibleInstrument name = do
+    url     <- loadInstrumentSample name
+    elAudio <- UI.audio # set (attr "preload") "1" # set UI.src url
+    return elAudio
+
+
+
+-- Drumkit
 
 type Kit        = [Instrument]
 type Instrument = [Beat]
@@ -121,36 +142,3 @@ mkCheckboxInstrument name = do
         #+ (element elAudio : UI.string name : elGroups)
     
     return (beats, elInstrument)
-
-
-
-
-keyboard :: [(String, UI (Element))]
-keyboard = let noteSounds = map mkInvisibleInstrument notes in
-               zip notes noteSounds
-
-mkInvisibleInstrument :: String -> UI (Element)
-mkInvisibleInstrument name = do
-    url     <- loadInstrumentSample name
-    elAudio <- UI.audio # set (attr "preload") "1" # set UI.src url
-    return elAudio
-{-
-playNote :: String -> UI ()
-playNote note = do
-  elPianoNote <- a1
-  do
-    runFunction $ ffi "%1.pause()" elPianoKey
-    runFunction $ ffi "%1.currentTime = 0" elPianoKey 
-    runFunction $ ffi "%1.play()" elPianoKey
-    {-  
-  case c of
-    {- 50        -> do
-      runFunction $ ffi "%1.pause()" elPianoKey1
-      runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
-      runFunction $ ffi "%1.play()" elPianoKey1 -}
-    otherwise -> do
-      runFunction $ ffi "%1.pause()" elPianoKey1
-      runFunction $ ffi "%1.currentTime = 0" elPianoKey1 
-      runFunction $ ffi "%1.play()" elPianoKey1
-      -}
--}
