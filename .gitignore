@@ -1,0 +1,7 @@
+bin
+*.hi
+*.o
+*~
+asd
+hbit
+.DS_*
