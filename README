@@ -1,0 +1,5 @@
+Requirements : Threepenny-gui
+
+instructions : to compile, run ghc hbit.hs -outputdir bin
+	       to run, simply execute ./hbit in the terminal
+	       
