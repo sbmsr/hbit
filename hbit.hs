@@ -6,6 +6,8 @@ import Data.Maybe
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
 
+-- drum machine code from  https://github.com/HeinrichApfelmus/threepenny-gui/blob/master/samples/DrumMachine.hs
+
 {-----------------------------------------------------------------------------
     Configuration
 ------------------------------------------------------------------------------}
@@ -17,10 +19,8 @@ bpm2ms :: Int -> Int
 bpm2ms bpm = ceiling $ 1000*60 / fromIntegral bpm
 
 drums = words "kick1 snare1 hihat1"
-notes = words "C C# snare1 D# E F F# G G# A A# B"
 
--- map of key press to note name
-input2note = zip keyPresses notes
+notes = words "C Csharp D Dsharp E F Fsharp G Gsharp A Asharp B C2"
 
 keyPresses = [65 :: UI.KeyCode,
               87 :: UI.KeyCode,
@@ -33,7 +33,11 @@ keyPresses = [65 :: UI.KeyCode,
               89 :: UI.KeyCode,
               72 :: UI.KeyCode,
               85 :: UI.KeyCode,
-              74 :: UI.KeyCode]
+              74 :: UI.KeyCode,
+              75 :: UI.KeyCode]
+
+-- map of key press to note name
+input2note = zip keyPresses notes
 
 loadInstrumentSample name = return $ "static/" ++ name ++ ".wav"
       
@@ -57,10 +61,13 @@ setup w = void $ do
                       ,[UI.string "Beat:", element elTick]]
     (kit, elInstruments) <- mkDrumKit
     out <- UI.span # set text "Note : "
+    instructions <- UI.span # set text "Click here, and press the keys above to play the piano" 
+    pianoImg <- UI.image # set UI.src ("static/images/piano.jpg")
     wrap <- UI.div #. "wrap"
-         # set (attr "tabindex") "1"
+         # set (attr "tabindex") "1" -- make area clickable
+         # set style [("width","500px"),("height","400px"),("border","solid black 1px")]
          #+ (status : map element elInstruments)
-         #+[element out]
+         #+ [column [widget out,widget pianoImg, widget instructions]]
     getBody w #+ [element wrap]
     -- add list of elements to body
     timer <- UI.timer # set UI.interval (bpm2ms defaultBpm)
@@ -88,7 +95,8 @@ setup w = void $ do
 
     UI.start timer
 
-
+-- My functions
+    
 playNote :: String -> UI ()
 playNote noteString = do
                  elPianoNote <- fromJust $ lookup noteString keyboard 
@@ -110,7 +118,7 @@ mkInvisibleInstrument name = do
 
 
 
--- Drumkit
+-- Drumkit Functions (I didn't write these)
 
 type Kit        = [Instrument]
 type Instrument = [Beat]
